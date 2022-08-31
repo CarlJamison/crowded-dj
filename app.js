@@ -53,15 +53,36 @@ app.get('/callback', (req, res) => {
 app.get('/:roomId/search/:query', (req, res) => {
   rooms[req.params.roomId].api.searchTracks(req.params.query).then(
     (data) => res.json(data.body.tracks.items),
-    (err) => console.log('Something went wrong!', err))
+    (err) => res.status(500).send(err))
 });
 
-app.get(':roomId/add', (req, res) => {
+
+app.put('/:roomId/add', (req, res) => {
   var song = req.query.song;
+  var room = rooms[req.params.roomId];
   var user = req.query.user;
+
+  if(room.stage.some(s => s.id == song)) {
+    res.status(500).send('Song already added');
+    return;
+  };
+
+  room.api.getTrack(song).then(
+    (data) => {
+      room.stage.push({
+        id: data.body.id,
+        name: data.body.name,
+        artist: data.body.artists[0].name,
+        image: data.body.album.images.at(-1).url,
+        likes: [user],
+        dislikes: [],
+      })
+      res.status(200).send("Song was added");
+    },
+    (err) => res.status(500).send(err));
 });
 
-app.get(':roomId/vote', (req, res) => {
+app.get('/:roomId/vote', (req, res) => {
   var song = req.query.song;
   var user = req.query.user;
   var vote = req.query.vote;
@@ -69,6 +90,10 @@ app.get(':roomId/vote', (req, res) => {
 
 app.get('/admin/:roomId', (req, res) => {
   res.sendFile(__dirname + '/admin.html');
+});
+
+app.get('/:roomId', (req, res) => {
+  res.sendFile(__dirname + '/user.html');
 });
 
 //app.use(express.static(__dirname + '/public'));

@@ -5,6 +5,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 const SpotifyWebApi = require('spotify-web-api-node');
+const port = process.env.PORT || 3000;
 
 var rooms = [];
 
@@ -115,8 +116,8 @@ app.get('/:roomId', (req, res) => {
   res.sendFile(__dirname + '/user.html');
 });
 
-server.listen(8888, () => {
-  console.log(`Server running at http://localhost:${8888}/`);
+server.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}/`);
 });
 
 function sendStage(token){

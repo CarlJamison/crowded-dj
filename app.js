@@ -1,9 +1,10 @@
 const express = require('express')
 const app = express();
-const sockets = require('socket.io')(require('http').Server(app));
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
 const SpotifyWebApi = require('spotify-web-api-node');
-
-var auth = '';
 
 var rooms=[];
 
@@ -13,7 +14,6 @@ const scopes = ['user-read-private', 'user-read-email'],
   clientSecret = '39afee48a3154f07877c58ce4b85c0d0',
   state = 'some-state-of-my-choice';
 
-
 // credentials are optional
 var spotifyApi = new SpotifyWebApi({
   clientId,
@@ -21,9 +21,9 @@ var spotifyApi = new SpotifyWebApi({
   redirectUri
 });
 
-sockets.on('connection', (socket) => {
-    socket.on('create-room', (message) => {
-        auth = message;
+io.on('connection', (socket) => {
+    socket.on('join-room', (message) => {
+        socket.join(message);
     });
 });
 
@@ -34,11 +34,11 @@ app.get('/login', (req, res) => {
 app.get('/callback', (req, res) => {
   var room = makeid(5);
   var wrapper = new SpotifyWebApi({clientId, clientSecret, redirectUri});
-  wrapper.authorizationCodeGrant(req.query.code).then((data) => {
+  wrapper.authorizationCodeGrant(req.query.code).then(data => {
       wrapper.setAccessToken(data.body['access_token']);
       wrapper.setRefreshToken(data.body['refresh_token']);
     },
-    (err) => console.log('Something went wrong!', err)
+    err => console.log('Something went wrong!', err)
   );
 
   rooms[room] = {
@@ -52,10 +52,9 @@ app.get('/callback', (req, res) => {
 
 app.get('/:roomId/search/:query', (req, res) => {
   rooms[req.params.roomId].api.searchTracks(req.params.query).then(
-    (data) => res.json(data.body.tracks.items),
-    (err) => res.status(500).send(err))
+    data => res.json(data.body.tracks.items),
+    err => res.status(500).send(err))
 });
-
 
 app.put('/:roomId/add', (req, res) => {
   var song = req.query.song;
@@ -77,15 +76,28 @@ app.put('/:roomId/add', (req, res) => {
         likes: [user],
         dislikes: [],
       })
+      sendStage(room);
       res.status(200).send("Song was added");
     },
     (err) => res.status(500).send(err));
 });
 
 app.get('/:roomId/vote', (req, res) => {
-  var song = req.query.song;
+  var song = rooms[req.params.roomId].stage.find(s => s.id == req.query.song);
   var user = req.query.user;
-  var vote = req.query.vote;
+  var vote = +req.query.vote;
+  
+  if([-1, 0].includes(vote)){
+    if(song.likes.includes(user)) song.likes = song.likes.filter(l => l != user);
+    if(!song.dislikes.includes(user) && vote) song.dislikes.push(user);
+  }
+
+  if([1, 0].includes(vote)){
+    if(song.dislikes.includes(user)) song.dislikes = song.dislikes.filter(l => l != user);
+    if(!song.likes.includes(user) && vote) song.likes.push(user);
+  }
+
+  sendStage(room);
 });
 
 app.get('/admin/:roomId', (req, res) => {
@@ -98,9 +110,22 @@ app.get('/:roomId', (req, res) => {
 
 //app.use(express.static(__dirname + '/public'));
 
-app.listen(8888, () => {
+server.listen(8888, () => {
   console.log(`Server running at http://localhost:${8888}/`);
 });
+
+function sendStage(token){
+  io.to(token).emit("stage-update",
+    rooms[token].stage.map(s => ({
+      id: s.id,
+      name: s.name,
+      artist: s.artist,
+      image: s.image,
+      likes: s.likes.length,
+      dislikes: s.dislikes.length,
+    }))
+  );
+}
 
 function makeid(length) {
   var result = '';

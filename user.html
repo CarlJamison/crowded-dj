@@ -29,6 +29,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Crowded-DJ</title>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/jquery.terminal/css/jquery.terminal.min.css"/>
   </head>
@@ -43,10 +44,25 @@
     </div>
     
     <div style="margin: 16px" class="search-results"></div>
+
+    <div style="margin: 16px" class="stage"></div>
 </body>
 
   <script>
     var token = window.location.pathname.split('/').at(-1);
+    
+    var socket = io();
+    socket.emit("join-room", token);
+    socket.on("stage-update", tracks => {
+        tracks.forEach(track => {
+                $("div.stage").append(`<div class="result">
+                    <img class="album-pic" src="${track.image}">
+                    <div style="margin: 8px; flex: 100">${track.name}</div>
+                    <div style="margin: 8px; text-align: right">${track.artist}</div>
+                    <button class="stage-button btn btn-primary" onclick="add('${track.id}')">Suggest</button>
+                </div>`);
+            });
+    });
 
     function search() {
         var query = document.getElementById('search-text').value;

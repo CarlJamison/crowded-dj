@@ -6,7 +6,7 @@ const { Server } = require("socket.io");
 const io = new Server(server);
 const SpotifyWebApi = require('spotify-web-api-node');
 
-var rooms=[];
+var rooms = [];
 
 const scopes = ['user-read-private', 'user-read-email'],
   redirectUri = 'http://localhost:8888/callback',
@@ -14,16 +14,22 @@ const scopes = ['user-read-private', 'user-read-email'],
   clientSecret = '39afee48a3154f07877c58ce4b85c0d0',
   state = 'some-state-of-my-choice';
 
-// credentials are optional
-var spotifyApi = new SpotifyWebApi({
-  clientId,
-  clientSecret,
-  redirectUri
-});
+var spotifyApi = new SpotifyWebApi({clientId, redirectUri});
 
 io.on('connection', (socket) => {
-    socket.on('join-room', (message) => {
-        socket.join(message);
+    socket.on('join-room', (token) => {
+        if(!rooms[token]) return;
+        socket.join(token);
+        
+        io.to(socket.id).emit("stage-update",
+          rooms[token].stage.map(s => ({
+            id: s.id,
+            name: s.name,
+            artist: s.artist,
+            image: s.image,
+            votes: s.likes.length - s.dislikes.length,
+          }))
+        );
     });
 });
 
@@ -76,7 +82,7 @@ app.put('/:roomId/add', (req, res) => {
         likes: [user],
         dislikes: [],
       })
-      sendStage(room);
+      sendStage(req.params.roomId);
       res.status(200).send("Song was added");
     },
     (err) => res.status(500).send(err));
@@ -96,8 +102,9 @@ app.get('/:roomId/vote', (req, res) => {
     if(song.dislikes.includes(user)) song.dislikes = song.dislikes.filter(l => l != user);
     if(!song.likes.includes(user) && vote) song.likes.push(user);
   }
-
-  sendStage(room);
+  sendStage(req.params.roomId);
+  
+  res.status(200).send("vote successful");
 });
 
 app.get('/admin/:roomId', (req, res) => {
@@ -107,8 +114,6 @@ app.get('/admin/:roomId', (req, res) => {
 app.get('/:roomId', (req, res) => {
   res.sendFile(__dirname + '/user.html');
 });
-
-//app.use(express.static(__dirname + '/public'));
 
 server.listen(8888, () => {
   console.log(`Server running at http://localhost:${8888}/`);
@@ -121,8 +126,7 @@ function sendStage(token){
       name: s.name,
       artist: s.artist,
       image: s.image,
-      likes: s.likes.length,
-      dislikes: s.dislikes.length,
+      votes: s.likes.length - s.dislikes.length,
     }))
   );
 }

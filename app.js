@@ -1,11 +1,11 @@
 const express = require('express')
 const app = express();
 const http = require('http');
-const server = http.createServer(app);
+const server = http.Server(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 const SpotifyWebApi = require('spotify-web-api-node');
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8888;
 
 var rooms = [];
 
@@ -111,6 +111,8 @@ app.get('/:roomId/vote', (req, res) => {
 app.get('/admin/:roomId', (req, res) => {
   res.sendFile(__dirname + '/admin.html');
 });
+
+app.use(express.static(__dirname + '/public'));
 
 app.get('/:roomId', (req, res) => {
   res.sendFile(__dirname + '/user.html');

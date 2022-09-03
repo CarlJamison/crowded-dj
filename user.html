@@ -1,54 +1,15 @@
 <!doctype html>
 <html>
   <head>
-    <style>
-        .result{
-            background-color: whitesmoke;
-            padding: 8px;
-            margin: 16px 0;
-            display: flex;
-            border-radius: 20px;
-            border: 1px gray solid;
-            letter-spacing: 1.25px;
-            box-shadow: grey 2px 2px 6px;
-        }
-
-        .album-pic{
-            height: 40px;
-            border-radius: 12px;
-            margin-right: 16px;
-        }
-
-        .btn.stage-button{
-            border-radius: 12px;
-            margin-left: 16px;
-        }
-
-        .icon-btn{
-            border: none;
-            background-color: inherit;
-            padding: 0 8px;
-        }
-
-        .vote-badge{
-            font-size: 20px;
-            padding: 8px;
-            font-weight: bold;    
-            background-color: #999;
-            border-radius: 10px;
-            line-height: 1;
-            color: white;
-        }
-
-    </style>
-    
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Crowded-DJ</title>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/song-search.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/jquery.terminal/css/jquery.terminal.min.css"/>
+    <link rel="stylesheet" href="/styles.css"/>
   </head>
 
 <body>
@@ -84,38 +45,5 @@
             });
     });
 
-    var input = document.getElementById("search-text")
-        .addEventListener("keypress", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                search();
-            }
-        });
-    function search() {
-        var query = document.getElementById('search-text').value;
-
-        $.getJSON(`/${token}/search/${query}`, tracks => {
-            $("div.search-results").html(`<div style="display:flex">
-                    <span style="flex:100">${tracks.length} result(s)</span>
-                    <button class="stage-button btn btn-primary" onclick="hideSearch()">Back</button>
-                </div>`);
-
-            tracks.forEach(track => {
-                $("div.search-results").append(`<div class="result">
-                    <img class="album-pic" src="${track.album.images.at(-1).url}">
-                    <div style="margin: 8px; flex: 100">${track.name}</div>
-                    <div style="margin: 8px; text-align: right">${track.artists[0].name}</div>
-                    <button class="stage-button btn btn-primary" onclick="add('${track.id}')">Suggest</button>
-                </div>`);
-            });
-        });
-    }
-
-    function add(id){
-        $.ajax({url: `/${token}/add?song=${id}`, type: 'PUT', success: () => hideSearch()});
-    }
-    function hideSearch(){
-        $("div.search-results").html("");
-    }
   </script>
 </html>

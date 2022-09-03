@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const app = express();
 const http = require('http');
@@ -10,9 +11,9 @@ const port = process.env.PORT || 8888;
 var rooms = [];
 
 const scopes = ['user-read-private', 'user-read-email'],
-  redirectUri = 'http://localhost:8888/callback',
-  clientId = 'd446a494fa264b17af513f2bc326a989',
-  clientSecret = '39afee48a3154f07877c58ce4b85c0d0',
+  redirectUri = process.env.CALLBACK,
+  clientId = process.env.SPOTIFY_CLIENT_ID,
+  clientSecret = process.env.SPOTIFY_CLIENT_SECRET,
   state = 'some-state-of-my-choice';
 
 var spotifyApi = new SpotifyWebApi({clientId, redirectUri});

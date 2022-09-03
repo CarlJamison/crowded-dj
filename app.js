@@ -10,7 +10,7 @@ const port = process.env.PORT || 8888;
 
 var rooms = [];
 
-const scopes = ['user-read-private', 'user-read-email'],
+const scopes = ['user-modify-playback-state'],
   redirectUri = process.env.CALLBACK,
   clientId = process.env.SPOTIFY_CLIENT_ID,
   clientSecret = process.env.SPOTIFY_CLIENT_SECRET,
@@ -90,7 +90,7 @@ app.put('/:roomId/add', (req, res) => {
     (err) => res.status(500).send(err));
 });
 
-app.get('/:roomId/vote', (req, res) => {
+app.put('/:roomId/vote', (req, res) => {
   var song = rooms[req.params.roomId].stage.find(s => s.id == req.query.song);
   var user = req.query.user;
   var vote = +req.query.vote;
@@ -107,6 +107,17 @@ app.get('/:roomId/vote', (req, res) => {
   sendStage(req.params.roomId);
   
   res.status(200).send("vote successful");
+});
+
+app.put('/:roomId/queue', (req, res) => {
+  var room = rooms[req.params.roomId];
+  var song = room.stage.find(s => s.id == req.query.song);
+  var user = req.query.user;
+
+  room.api.addToQueue('spotify:track:' + song.id).then(
+    data => res.status(200).send("song added"),
+    err => res.status(500).send(err)
+  );
 });
 
 app.get('/admin/:roomId', (req, res) => {

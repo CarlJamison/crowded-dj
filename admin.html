@@ -8,11 +8,13 @@
     <script src="/song-search.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/jquery.terminal/css/jquery.terminal.min.css"/>
     <link rel="stylesheet" href="/styles.css"/>
   </head>
 
 <body>
+    <div>
+        <div class="token"></div>
+    </div>
 
     <div style="max-width: 300px; margin: 32px auto; display: flex;">
         <div style="margin: 0 16px">
@@ -28,6 +30,8 @@
 
   <script>
     var token = window.location.pathname.split('/').at(-1);
+
+    $("div.token").html("Code to share: " + token)
 
     var socket = io();
     socket.emit("join-room", token);

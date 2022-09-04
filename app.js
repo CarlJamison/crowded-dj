@@ -10,7 +10,7 @@ const port = process.env.PORT || 8888;
 
 var rooms = [];
 
-const scopes = ['user-modify-playback-state'],
+const scopes = ['user-modify-playback-state', 'user-read-private'],
   redirectUri = process.env.CALLBACK,
   clientId = process.env.SPOTIFY_CLIENT_ID,
   clientSecret = process.env.SPOTIFY_CLIENT_SECRET,
@@ -127,6 +127,17 @@ app.get('/admin/:roomId', (req, res) => {
 app.use(express.static(__dirname + '/public'));
 
 app.get('/:roomId', (req, res) => {
+  if(!rooms[req.params.roomId]){
+
+    if(rooms[req.params.roomId.toUpperCase()]){
+      res.redirect('/' + req.params.roomId.toUpperCase());
+    }else{
+      res.redirect('/');
+    }
+
+    return;
+  }
+
   res.sendFile(__dirname + '/user.html');
 });
 

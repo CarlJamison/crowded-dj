@@ -35,3 +35,15 @@
     line-height: 1;
     color: white;
 }
+
+.token{
+    text-align: center;
+    letter-spacing: 1.25px;
+    border: darkslategray 2px solid;
+    width: 200px;
+    margin: 16px auto;
+    border-radius: 16px;
+    padding: 8px;
+    background-color: lightblue;
+    color: darkslategray;
+}

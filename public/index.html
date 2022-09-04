@@ -1,41 +1,27 @@
 <!doctype html>
 <html>
   <head>
-    <style>
-        .result{
-            background-color: whitesmoke;
-            padding: 8px;
-            margin: 16px 0;
-            display: flex;
-            border-radius: 20px;
-            border: 1px gray solid;
-            letter-spacing: 1.25px;
-            box-shadow: grey 2px 2px 6px;
-        }
-
-        .album-pic{
-            height: 40px;
-            border-radius: 12px;
-            margin-right: 16px;
-        }
-
-        .btn.stage-button{
-            border-radius: 12px;
-            margin-left: 16px;
-        }
-
-    </style>
-    
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Crowded-DJ</title>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/jquery.terminal/css/jquery.terminal.min.css"/>
   </head>
 
 <body>
-
-    <div style="max-width: 300px; margin: 32px auto; display: flex;">HOME
+    <div style="display: flex;">
+        <button style="margin: 16px auto" class="stage-button btn btn-primary" onclick="location.href='/login'" >Create Room</button>
     </div>
+
+    <div style="max-width: 300px; margin: 32px auto; display: flex;">
+        <div style="margin: 0 16px">
+            <input class="form-control" id="token">
+        </div>
+        <button onclick="join()" class="btn btn-primary">Join Room</button>
+    </div>
+    
 </body>
+<script>
+    function join(){
+        location.href='/'+document.getElementById('token').value
+    }
+</script>
 </html>

@@ -29,7 +29,7 @@ function search() {
 }
 
 function add(id){
-    $.ajax({url: `/${token}/add?song=${id}`, type: 'PUT', success: () => hideSearch()});
+    $.ajax({url: `/${token}/add?song=${id}&user=${userId}`, type: 'PUT', success: () => hideSearch()});
 }
 
 function hideSearch(){

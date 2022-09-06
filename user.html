@@ -1,48 +1,54 @@
 <!doctype html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Crowded-DJ</title>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/song-search.js"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/styles.css"/>
-  </head>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Crowded-DJ</title>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/song-search.js"></script>
+        <script src="/state.js"></script>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/styles.css"/>
+    </head>
 
-<body>
+    <body>
 
-    <div style="max-width: 300px; margin: 32px auto; display: flex;">
-        <div style="margin: 0 16px">
-            <input class="form-control" id="search-text">
+        <div style="max-width: 300px; margin: 32px auto; display: flex;">
+            <div style="margin: 0 16px">
+                <input class="form-control" id="search-text">
+            </div>
+            <button onclick="search()" class="btn btn-primary">Search</button>
         </div>
-        <button onclick="search()" class="btn btn-primary">Search</button>
-    </div>
-    
-    <div style="margin: 16px" class="search-results"></div>
+        
+        <div style="margin: 16px" class="search-results"></div>
 
-    <div style="margin: 16px" class="stage"></div>
-</body>
+        <div style="margin: 16px" class="stage"></div>
+    </body>
 
-  <script>
-    var token = window.location.pathname.split('/').at(-1);
-    
-    var socket = io();
-    socket.emit("join-room", token);
-    socket.on("stage-update", tracks => {
-        $("div.stage").html("")
-        tracks.forEach(track => {
-                $("div.stage").append(`<div class="result">
-                    <img class="album-pic" src="${track.image}">
-                    <div style="margin: 8px; flex: 100">${track.name}</div>
-                    <div style="margin: 8px; text-align: right">${track.artist}</div>
-                    <button class="icon-btn"><span class="material-symbols-outlined">arrow_upward</span></button>
-                    <div class="vote-badge">${track.votes}</div>
-                    <button class="icon-btn"><span class="material-symbols-outlined">arrow_downward</span></button>
-                </div>`);
-            });
-    });
+    <script>
+        
+        var socket = io();
+        socket.emit("join-room", token);
+        socket.on("stage-update", tracks => {
+            $("div.stage").html("")
+            tracks
+                .sort((a, b) => b.votes - a.votes)
+                .forEach(track => {
+                    $("div.stage").append(`<div class="result">
+                        <img class="album-pic" src="${track.image}">
+                        <div style="margin: 8px; flex: 100">${track.name}</div>
+                        <div style="margin: 8px; text-align: right">${track.artist}</div>
+                        <button onclick="vote('${track.id}', 1)" class="icon-btn"><span class="material-symbols-outlined">arrow_upward</span></button>
+                        <div class="vote-badge">${track.votes}</div>
+                        <button onclick="vote('${track.id}', -1)" class="icon-btn"><span class="material-symbols-outlined">arrow_downward</span></button>
+                    </div>`);
+                });
+        });
 
-  </script>
+        function vote(id, value){
+            $.ajax({url: `/${token}/vote?song=${id}&user=${userId}&vote=${value}`, type: 'PUT'});
+        }
+
+    </script>
 </html>

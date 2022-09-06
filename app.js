@@ -10,7 +10,7 @@ const port = process.env.PORT || 8888;
 
 var rooms = [];
 
-const scopes = ['user-modify-playback-state', 'user-read-private'],
+const scopes = ['user-modify-playback-state', 'user-read-private', 'user-read-playback-state'],
   redirectUri = process.env.CALLBACK,
   clientId = process.env.SPOTIFY_CLIENT_ID,
   clientSecret = process.env.SPOTIFY_CLIENT_SECRET,
@@ -35,6 +35,8 @@ io.on('connection', (socket) => {
     });
 });
 
+app.use(express.static(__dirname + '/public'));
+
 app.get('/login', (req, res) => {
   res.redirect(spotifyApi.createAuthorizeURL(scopes, state));
 });
@@ -50,6 +52,7 @@ app.get('/callback', (req, res) => {
   );
 
   rooms[room] = {
+    auth: '',
     queue: [],
     stage: [],
     api: wrapper,
@@ -113,18 +116,61 @@ app.put('/:roomId/queue', (req, res) => {
   var room = rooms[req.params.roomId];
   var song = room.stage.find(s => s.id == req.query.song);
   var user = req.query.user;
+  if(room.auth != user){
+    res.status(403).send("Not admin");
+    return;
+  }
 
   room.api.addToQueue('spotify:track:' + song.id).then(
-    data => res.status(200).send("song added"),
-    err => res.status(500).send(err)
-  );
+    data => {
+      room.stage = room.stage.filter(s => s.id != song.id);
+      sendStage(req.params.roomId);
+      res.status(200).send("song added");
+    },
+    err =>
+      room.api.getMyDevices().then(
+        data => room.api.transferMyPlayback([data.body.devices[0].id]).then(
+          data => room.api.addToQueue('spotify:track:' + song.id).then(
+            data => {
+              room.stage = room.stage.filter(s => s.id != song.id);
+              sendStage(req.params.roomId);
+              res.status(200).send("song added");
+            },
+            err => res.status(500).send(err)
+          ),
+          err => res.status(500).send(err)
+        ),
+        err => res.status(500).send(err)
+      )
+  )
 });
 
 app.get('/admin/:roomId', (req, res) => {
+  if(!rooms[req.params.roomId]){
+
+    if(rooms[req.params.roomId.toUpperCase()]){
+      res.redirect('/' + req.params.roomId.toUpperCase());
+    }else{
+      res.redirect('/');
+    }
+
+    return;
+  }
   res.sendFile(__dirname + '/admin.html');
 });
 
-app.use(express.static(__dirname + '/public'));
+app.put('/:roomId/verify', (req, res) => {
+
+  var room = rooms[req.params.roomId];
+
+  if(!room.auth){
+    room.auth = req.query.user;
+  }else if(room.auth != req.query.user){
+    res.redirect('/' + req.params.roomId);
+  }
+
+  res.status(200).send("valid admin")
+});
 
 app.get('/:roomId', (req, res) => {
   if(!rooms[req.params.roomId]){

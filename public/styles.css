@@ -1,12 +1,19 @@
 .result{
     background-color: whitesmoke;
     padding: 8px;
-    margin: 16px 0;
+    margin: 16px auto;
     display: flex;
     border-radius: 20px;
     border: 1px gray solid;
     letter-spacing: 1.25px;
     box-shadow: grey 2px 2px 6px;
+    color: #430081;
+    max-width: 500px;
+}
+
+.search-results{
+    color:whitesmoke;
+    letter-spacing: 0.6px;
 }
 
 .album-pic{
@@ -29,11 +36,13 @@
 .vote-badge{
     font-size: 20px;
     padding: 8px;
-    font-weight: bold;    
-    background-color: #999;
+    font-weight: bold;
+    background-color: #8f00af;
     border-radius: 10px;
     line-height: 1;
-    color: white;
+    color: whitesmoke;
+    max-height: 36px;
+    margin: auto;
 }
 
 .token{
@@ -46,4 +55,13 @@
     padding: 8px;
     background-color: lightblue;
     color: darkslategray;
+}
+
+html{
+    background: linear-gradient(45deg, #8f00af, #430081);
+    height: 100%;
+}
+
+body{
+    background-color: inherit !important;
 }

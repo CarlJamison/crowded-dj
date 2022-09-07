@@ -22,7 +22,7 @@
         </div>
         
         <div style="margin: 16px" class="search-results"></div>
-
+        
         <div style="margin: 16px" class="stage"></div>
     </body>
 
@@ -44,6 +44,8 @@
                         <button onclick="vote('${track.id}', -1)" class="icon-btn"><span class="material-symbols-outlined">arrow_downward</span></button>
                     </div>`);
                 });
+
+                $("div.stage").append('<div class="spacer"></div>')
         });
 
         function vote(id, value){

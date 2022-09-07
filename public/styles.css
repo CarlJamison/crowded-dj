@@ -48,13 +48,14 @@
 .token{
     text-align: center;
     letter-spacing: 1.25px;
-    border: darkslategray 2px solid;
-    width: 200px;
+    border: #8c5db7 4px solid;
+    width: 300px;
     margin: 16px auto;
     border-radius: 16px;
     padding: 8px;
-    background-color: lightblue;
-    color: darkslategray;
+    background-color: #d9afff;
+    color: #430081;
+    font-size: 20px;
 }
 
 html{
@@ -64,4 +65,30 @@ html{
 
 body{
     background-color: inherit !important;
+}
+
+.btn-large{
+    font-size: 20px;    
+    letter-spacing: 1.25px;
+}
+
+.text-large{
+    color: whitesmoke;
+    font-size: 20px;
+    width: 100%;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.code-input{
+    text-transform: uppercase;
+    color: #430081;
+    letter-spacing: 2px;
+    font-size: 20px; 
+    height: unset;
+}
+
+.spacer{
+    border-bottom: whitesmoke 1px solid;
+    margin: 8px 16px;
 }

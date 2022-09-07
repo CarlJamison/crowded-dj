@@ -25,7 +25,6 @@
         </div>
         
         <div style="margin: 16px" class="search-results"></div>
-
         <div style="margin: 16px" class="stage"></div>
     </body>
 
@@ -49,6 +48,8 @@
                         <button class="stage-button btn btn-primary" onclick="queue('${track.id}')">Queue</button>
                     </div>`);
                 });
+
+                $("div.stage").append('<div class="spacer"></div>')
         });
 
         function queue(id){

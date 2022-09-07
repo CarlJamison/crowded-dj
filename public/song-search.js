@@ -25,6 +25,8 @@ function search() {
                 <button class="stage-button btn btn-primary" onclick="add('${track.id}')">Suggest</button>
             </div>`);
         });
+
+        $("div.search-results").append('<div class="spacer"></div>')
     });
 }
 

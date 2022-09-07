@@ -8,16 +8,18 @@
   </head>
 
 <body>
-    
-    <div style="margin-top: 32px; display: flex;">
-        <button style="margin: 16px auto" class="stage-button btn btn-primary" onclick="location.href='/login'" >Create Room</button>
+
+    <div style="max-width: 300px; margin: 32px auto;">
+        <input placeholder="Enter 5-letter code" class="code-input form-control" id="token">
+        <div style="display: flex;">
+            <button style="margin: 16px auto" onclick="join()" class="btn-large btn btn-primary">Join Room</button>
+        </div>
     </div>
 
-    <div style="max-width: 300px; margin: 32px auto; display: flex;">
-        <div style="margin: 0 16px">
-            <input class="form-control" id="token">
-        </div>
-        <button onclick="join()" class="btn btn-primary">Join Room</button>
+    <div class="text-large">OR</div>    
+
+    <div style="display: flex;">
+        <button style="margin: 32px auto" class="btn-large btn btn-primary" onclick="location.href='/login'" >Create Room</button>
     </div>
     
 </body>

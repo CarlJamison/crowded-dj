@@ -13,8 +13,12 @@
     </head>
 
     <body>
-        <div>
+        <div style="display: flex">
             <div class="token"></div>
+            <input onclick="changeAutoQueue(this)" style="width: 24px; margin: 8px"class="form-check-input" type="checkbox" value="" id="autoqueue">
+            <label style="margin: auto 8px; color: whitesmoke" class="form-check-label" for="autoqueue">
+                Auto-Queue
+            </label>
         </div>
 
         <div style="max-width: 300px; margin: 32px auto; display: flex;">
@@ -29,7 +33,9 @@
     </body>
 
     <script>
-        $.ajax({url: `/${token}/verify?user=${userId}`, type: 'PUT'});    
+        $.ajax({url: `/${token}/verify?user=${userId}`, type: 'PUT'});
+        
+        $.ajax({url: `/${token}/autoqueue?user=${userId}`, type: 'GET', success: value => autoqueue.checked = value == "true"});    
 
         $("div.token").html("Code to share: " + token)
 
@@ -54,6 +60,10 @@
 
         function queue(id){
             $.ajax({url: `/${token}/queue?song=${id}&user=${userId}`, type: 'PUT'});
+        }
+
+        function changeAutoQueue(cb){
+            $.ajax({url: `/${token}/autoqueue?user=${userId}&autoqueue=${cb.checked}`, type: 'PUT'});
         }
 
     </script>

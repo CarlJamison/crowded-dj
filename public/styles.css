@@ -50,12 +50,14 @@
     letter-spacing: 1.25px;
     border: #8c5db7 4px solid;
     width: 300px;
-    margin: 16px auto;
+    margin: 16px 16px;
+    flex: 100;
     border-radius: 16px;
     padding: 8px;
     background-color: #d9afff;
     color: #430081;
     font-size: 20px;
+    max-width: 500px;
 }
 
 html{

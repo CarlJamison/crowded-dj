@@ -6,6 +6,8 @@ const server = http.Server(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 const SpotifyWebApi = require('spotify-web-api-node');
+const HttpManager = require('spotify-web-api-node/src/http-manager');
+const WebApiRequest = require('spotify-web-api-node/src/webapi-request');
 const port = process.env.PORT || 8888;
 
 var rooms = [];
@@ -35,6 +37,39 @@ io.on('connection', (socket) => {
     });
 });
 
+setInterval(async () => {
+
+  for(var room_id in rooms){
+    //TODO Clean up old rooms
+
+    var room = rooms[room_id];
+    var song = room.stage.sort((a, b) => (b.likes.length - b.dislikes.length) - (a.likes.length - a.dislikes.length))[0];
+    if(!song || !room.autoQueue) return;
+
+    var queueData = await room.api.getMyQueue();
+    if(queueData.body.queue.length > 1) return;
+
+    try {
+      room.api.addToQueue('spotify:track:' + song.id).then(
+        data => {
+          room.stage = room.stage.filter(s => s.id != song.id);
+          sendStage(room.id);
+        },
+        async err => {
+          var deviceData = await room.api.getMyDevices();
+          await room.api.transferMyPlayback([deviceData.body.devices[0].id]);
+          room.api.addToQueue('spotify:track:' + song.id).then(() => {
+            room.stage = room.stage.filter(s => s.id != song.id);
+            sendStage(room.id);
+          });
+        }
+      )
+    }catch(err){
+      console.log(err);
+    }
+  }
+}, 30000);
+
 app.use(express.static(__dirname + '/public'));
 
 app.get('/login', (req, res) => {
@@ -51,10 +86,20 @@ app.get('/callback', (req, res) => {
     err => console.log('Something went wrong!', err)
   );
 
+  wrapper.getMyQueue = function(options, callback) {
+    return WebApiRequest.builder(this.getAccessToken())
+      .withPath('/v1/me/player/queue')
+      .withQueryParameters(options)
+      .build()
+      .execute(HttpManager.get, callback)
+  };
+
   rooms[room] = {
+    id: room,
     auth: '',
     queue: [],
     stage: [],
+    autoQueue: false,
     api: wrapper,
   }
 
@@ -143,6 +188,23 @@ app.put('/:roomId/queue', (req, res) => {
         err => res.status(500).send(err)
       )
   )
+});
+
+app.put('/:roomId/autoqueue', (req, res) => {
+  var room = rooms[req.params.roomId];
+  if(room.auth != req.query.user){
+    res.status(403).send("Not admin");
+  }else{
+    room.autoQueue = req.query.autoqueue;
+    res.status(200).send("AutoQueue Changed");
+  }
+});
+
+app.get('/:roomId/autoqueue', (req, res) => {
+  var room = rooms[req.params.roomId];
+  if(room){
+    res.status(200).send(room.autoQueue);
+  }
 });
 
 app.get('/admin/:roomId', (req, res) => {

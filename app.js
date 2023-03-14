@@ -46,13 +46,15 @@ setInterval(async () => {
     var song = room.stage.sort((a, b) => (b.likes.length - b.dislikes.length) - (a.likes.length - a.dislikes.length))[0];
     if(!song || !room.autoQueue) return;
 
+    //Check if last song is still in queue
     var queueData = await room.api.getMyQueue();
-    if(queueData.body.queue.length > 1) return;
+    if(queueData.body.queue.some(s => s.id == room.last)) return;
 
     try {
       room.api.addToQueue('spotify:track:' + song.id).then(
         data => {
           room.stage = room.stage.filter(s => s.id != song.id);
+          room.last = song.id;
           sendStage(room.id);
         },
         async err => {
@@ -60,6 +62,7 @@ setInterval(async () => {
           await room.api.transferMyPlayback([deviceData.body.devices[0].id]);
           room.api.addToQueue('spotify:track:' + song.id).then(() => {
             room.stage = room.stage.filter(s => s.id != song.id);
+            room.last = song.id;
             sendStage(room.id);
           });
         }
@@ -107,9 +110,13 @@ app.get('/callback', (req, res) => {
 });
 
 app.get('/:roomId/search/:query', (req, res) => {
-  rooms[req.params.roomId].api.searchTracks(req.params.query).then(
-    data => res.json(data.body.tracks.items),
-    err => res.status(500).send(err))
+  var room = rooms[req.params.roomId]
+  
+  if(room){
+    room.api.searchTracks(req.params.query).then(
+      data => res.json(data.body.tracks.items),
+      err => res.status(500).send(err));
+  }
 });
 
 app.put('/:roomId/add', (req, res) => {

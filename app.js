@@ -38,8 +38,8 @@ io.on('connection', (socket) => {
     });
 });
 
-cron.schedule('30 * * * * *', async () => {
-
+cron.schedule('* * * * *', async () => {
+  console.log("Running cron job");
   for(var room_id in rooms){
     //TODO Clean up old rooms
 
@@ -75,6 +75,10 @@ cron.schedule('30 * * * * *', async () => {
 });
 
 app.use(express.static(__dirname + '/public'));
+
+app.get('/qrcode.js', (req, res) => {
+  res.sendFile(__dirname + '/node_modules/qrcode/build/qrcode.js');
+});
 
 app.get('/login', (req, res) => {
   res.redirect(spotifyApi.createAuthorizeURL(scopes, state));

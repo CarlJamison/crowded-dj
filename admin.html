@@ -7,6 +7,7 @@
         <script src="/socket.io/socket.io.js"></script>
         <script src="/song-search.js"></script>
         <script src="/state.js"></script>
+        <script src="/qrcode.js"></script>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="/styles.css"/>
@@ -14,11 +15,18 @@
 
     <body>
         <div style="display: flex">
-            <div class="token"></div>
-            <input onclick="changeAutoQueue(this)" style="width: 24px; margin: 8px"class="form-check-input" type="checkbox" value="" id="autoqueue">
-            <label style="margin: auto 8px; color: whitesmoke" class="form-check-label" for="autoqueue">
-                Auto-Queue
-            </label>
+            
+            <div style="margin: 16px; text-align: center" class="qr-code"></div>
+            <div style="width: 100%">
+                
+                <div class="token"></div>
+                <div style="margin: 32px auto; justify-content: center; display: flex">
+                    <input onclick="changeAutoQueue(this)" style="height: 24px; width: 24px; margin: 8px"class="form-check-input" type="checkbox" value="" id="autoqueue">
+                    <label style="margin: auto 8px; color: whitesmoke" class="form-check-label" for="autoqueue">
+                        Auto-Queue
+                    </label>
+                </div>
+            </div>
         </div>
 
         <div style="max-width: 300px; margin: 32px auto; display: flex;">
@@ -33,11 +41,17 @@
     </body>
 
     <script>
+        
+        var opts = { errorCorrectionLevel: 'H', margin: 2, color: { dark:"#00000000", light:"#ffffff" } }
+        QRCode.toDataURL(window.location.href.replace('/admin', ''), opts, (err, url) => {
+            $("div.qr-code").html(`<img style="border-radius: 8px" src="${url}">`);
+		});
+
         $.ajax({url: `/${token}/verify?user=${userId}`, type: 'PUT'});
         
         $.ajax({url: `/${token}/autoqueue?user=${userId}`, type: 'GET', success: value => autoqueue.checked = value == "true"});    
 
-        $("div.token").html("Code to share: " + token)
+        $("div.token").html(token)
 
         var socket = io();
         socket.emit("join-room", token);

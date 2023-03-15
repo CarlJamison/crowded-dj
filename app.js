@@ -1,5 +1,6 @@
 require('dotenv').config()
 const express = require('express')
+const cron = require('node-cron');
 const app = express();
 const http = require('http');
 const server = http.Server(app);
@@ -37,7 +38,7 @@ io.on('connection', (socket) => {
     });
 });
 
-setInterval(async () => {
+cron.schedule('30 * * * * *', async () => {
 
   for(var room_id in rooms){
     //TODO Clean up old rooms
@@ -71,7 +72,7 @@ setInterval(async () => {
       console.log(err);
     }
   }
-}, 30000);
+});
 
 app.use(express.static(__dirname + '/public'));
 

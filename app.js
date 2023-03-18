@@ -51,26 +51,13 @@ cron.schedule('* * * * *', async () => {
     var queueData = await room.api.getMyQueue();
     if(queueData.body.queue.some(s => s.id == room.last)) return;
 
-    try {
-      room.api.addToQueue('spotify:track:' + song.id).then(
-        data => {
-          room.stage = room.stage.filter(s => s.id != song.id);
-          room.last = song.id;
-          sendStage(room.id);
-        },
-        async err => {
-          var deviceData = await room.api.getMyDevices();
-          await room.api.transferMyPlayback([deviceData.body.devices[0].id]);
-          room.api.addToQueue('spotify:track:' + song.id).then(() => {
-            room.stage = room.stage.filter(s => s.id != song.id);
-            room.last = song.id;
-            sendStage(room.id);
-          });
-        }
-      )
-    }catch(err){
-      console.log(err);
-    }
+    room.api.addToQueue('spotify:track:' + song.id).then(
+      () => {
+        room.stage = room.stage.filter(s => s.id != song.id);
+        room.last = song.id;
+        sendStage(room.id);
+      }, err => console.log(err.body.error.message)
+    )
   }
 });
 
@@ -124,6 +111,18 @@ app.get('/:roomId/search/:query', (req, res) => {
   }
 });
 
+app.put('/:roomId/remove', (req, res) => {
+  var room = rooms[req.params.roomId];
+  var user = req.query.user;
+  if(!room || room.auth != user){
+    res.status(403).send("Not admin");
+    return;
+  }
+
+  room.stage = room.stage.filter(s => s.id != req.query.song);
+  sendStage(req.params.roomId);
+})
+
 app.put('/:roomId/add', (req, res) => {
   var song = req.query.song;
   var room = rooms[req.params.roomId];
@@ -171,40 +170,26 @@ app.put('/:roomId/vote', (req, res) => {
 
 app.put('/:roomId/queue', (req, res) => {
   var room = rooms[req.params.roomId];
-  var song = room.stage.find(s => s.id == req.query.song);
   var user = req.query.user;
-  if(room.auth != user){
+  if(!room || room.auth != user){
     res.status(403).send("Not admin");
     return;
   }
+  
+  var song = room.stage.find(s => s.id == req.query.song);
 
   room.api.addToQueue('spotify:track:' + song.id).then(
-    data => {
-      room.stage = room.stage.filter(s => s.id != song.id);
-      sendStage(req.params.roomId);
-      res.status(200).send("song added");
-    },
-    err =>
-      room.api.getMyDevices().then(
-        data => room.api.transferMyPlayback([data.body.devices[0].id]).then(
-          data => room.api.addToQueue('spotify:track:' + song.id).then(
-            data => {
-              room.stage = room.stage.filter(s => s.id != song.id);
-              sendStage(req.params.roomId);
-              res.status(200).send("song added");
-            },
-            err => res.status(500).send(err)
-          ),
-          err => res.status(500).send(err)
-        ),
-        err => res.status(500).send(err)
-      )
+      () => {
+        room.stage = room.stage.filter(s => s.id != song.id);
+        room.last = song.id;
+        sendStage(room.id);
+      }, err => console.log(err.body.error.message)
   )
 });
 
 app.put('/:roomId/autoqueue', (req, res) => {
   var room = rooms[req.params.roomId];
-  if(room.auth != req.query.user){
+  if(!room || room.auth != req.query.user){
     res.status(403).send("Not admin");
   }else{
     room.autoQueue = req.query.autoqueue;
